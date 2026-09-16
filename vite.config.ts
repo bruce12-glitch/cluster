@@ -17,14 +17,15 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-    // The three.js + postprocessing graph is chunky by nature; keep it in a
-    // separate chunk so the (tiny) app shell can paint instantly.
+    // The three.js + postprocessing graph is chunky by nature; split it into
+    // separate chunks so the (tiny) app shell can paint instantly. Vite 8 runs
+    // on Rolldown, which only accepts the function form of `manualChunks`.
     rollupOptions: {
       output: {
-        manualChunks: {
-          three: ['three'],
-          r3f: ['@react-three/fiber', '@react-three/drei'],
-          post: ['postprocessing', '@react-three/postprocessing'],
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('node_modules/three/')) return 'three'
+          if (id.includes('postprocessing') || id.includes('@react-three')) return 'r3f'
         },
       },
     },
