@@ -7,6 +7,8 @@ experiential and deliberately featureless: no navigation, no buttons, no
 settings, no sliders, no forms. There is exactly one thing to do — look at it and
 move the cursor.
 
+**Live: <https://bruce12-glitch.github.io/cluster/>**
+
 ![The Infinitum Node](docs/preview-desktop.webp)
 
 <p align="center">
@@ -41,6 +43,31 @@ npm run dev        # http://localhost:5173
 npm run build      # tsc --noEmit && vite build
 npm run preview    # serve the production bundle
 ```
+
+## Deploying
+
+The site is served by GitHub Pages from the `gh-pages` branch at
+<https://bruce12-glitch.github.io/cluster/>.
+
+```bash
+npm run deploy
+```
+
+That builds, stages `dist/` into a scratch directory, and force-pushes it as an
+orphan `gh-pages` branch. Pages then rebuilds in about thirty seconds.
+
+Two details make this work:
+
+- **`base: './'` in `vite.config.ts`.** Pages serves a project repo from
+  `/<repo>/`, not from the domain root, so an absolute `/assets/...` base would
+  404. A relative base works from a subpath, from the root, and from `file://`.
+- **`.nojekyll`.** Pages runs Jekyll by default, which would try to process the
+  build output. An empty `.nojekyll` at the root of `gh-pages` disables that.
+
+The deploy script stages into a temp directory rather than using `git subtree`,
+because `dist/` is gitignored — there is nothing committed for subtree to push.
+Keeping the build on its own orphan branch means `main` stays source-only and
+`gh-pages` stays build-only, with no generated files in the main history.
 
 ---
 
