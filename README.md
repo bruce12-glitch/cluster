@@ -7,6 +7,12 @@ experiential and deliberately featureless: no navigation, no buttons, no
 settings, no sliders, no forms. There is exactly one thing to do — look at it and
 move the cursor.
 
+![The Infinitum Node](docs/preview-desktop.webp)
+
+<p align="center">
+  <img src="docs/preview-mobile.webp" width="260" alt="The same composition on a portrait phone" />
+</p>
+
 ---
 
 ## What it is
@@ -96,9 +102,18 @@ linear values, and a single ACES curve is applied at the end of the chain.
 Nothing is converted twice.
 
 **The resolution is adaptive.** `FrameGovernor` watches a rolling frame-time
-average and steps the device pixel ratio between 1.0 and 1.75. The first time it
-has to downgrade, that level becomes the new ceiling — a ratchet, so the image
-can never oscillate between two resolutions.
+average and steps the device pixel ratio between 0.75 and 1.5. The first time it
+has to downgrade, that level becomes the new ceiling — a ratchet, so the image can
+never oscillate between two resolutions — and after a sustained stretch of
+comfortable frames the ceiling is handed back a step, so a machine that was merely
+busy for a moment is not punished for the rest of the session.
+
+Measured at 1600×900 on Intel UHD integrated graphics: **121fps** for the scene
+alone, **~45fps** once the post chain is added, and **~62fps** after the
+optimisations above. That last figure is the point of the whole exercise — the
+post chain, not the geometry, was the entire performance story, and the two
+effects that were removed (`Vignette`, `Noise`) were the two that CSS could
+already do for free.
 
 **Disposal is explicit.** Every geometry and material created outside R3F's
 declarative tree is disposed in an effect cleanup. The throwaway `BoxGeometry`
