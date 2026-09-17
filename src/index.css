@@ -1,0 +1,164 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------------- *
+ * Design tokens
+ *
+ * The whole page lives inside a pitch-black void, so the token set is
+ * deliberately tiny: one near-white ink, one muted grey, and a single neon
+ * cyan accent that the WebGL layer is tuned to match exactly.
+ * ------------------------------------------------------------------------- */
+@theme {
+  --font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  --color-void: #000000;
+  --color-ink: #eaf7fb;
+  --color-muted: #6d7f8a;
+  --color-core: #4fe9ff;
+  --color-frost: #0b1c26;
+
+  /* Overlay motion — pure CSS, so it never touches the frame budget. */
+  --animate-unveil: unveil 2.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-lift: lift 1.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-drift: drift 19s ease-in-out infinite;
+  --animate-blink: blink 1.9s steps(1, end) infinite;
+
+  @keyframes unveil {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes lift {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 20px, 0);
+      filter: blur(7px);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+    }
+  }
+
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -8px, 0);
+    }
+  }
+
+  @keyframes blink {
+    0%,
+    47% {
+      opacity: 1;
+    }
+    48%,
+    100% {
+      opacity: 0.04;
+    }
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  canvas {
+    display: block;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-core) 26%, transparent);
+  }
+}
+
+/* ------------------------------------------------------------------------- *
+ * Atmosphere
+ *
+ * Three stacked, pointer-transparent plates that sit above the WebGL canvas:
+ * a vignette to bury the frame edges, hairline scanlines for the display
+ * texture, and film grain so the blacks never look digitally flat.
+ *
+ * These replace the equivalent post-processing effects on purpose. A GPU
+ * `Vignette` and `Noise` pass would be two more full-screen render passes doing
+ * what these composited layers already do for free — and on integrated graphics
+ * the pass count is what decides whether the page holds 60fps. The grain is
+ * static for the same reason: animating a full-screen blended layer forces the
+ * compositor to re-blend it every frame.
+ * ------------------------------------------------------------------------- */
+@layer components {
+  .atmo-vignette {
+    background:
+      radial-gradient(
+        118% 82% at 50% 46%,
+        transparent 26%,
+        rgb(0 0 0 / 0.58) 72%,
+        rgb(0 0 0 / 0.96) 100%
+      );
+  }
+
+  .atmo-scanlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.032) 0px,
+      rgb(255 255 255 / 0.032) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+
+  .atmo-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+  }
+
+  /* The monument headline gets a whisper of bloom so it reads as part of the
+     render rather than as flat HTML laid on top of it. */
+  .title-bloom {
+    text-shadow:
+      0 0 24px rgb(79 233 255 / 0.18),
+      0 0 64px rgb(79 233 255 / 0.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
