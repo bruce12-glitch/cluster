@@ -11,6 +11,15 @@ import tailwindcss from '@tailwindcss/vite'
  */
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  /**
+   * Relative asset URLs.
+   *
+   * The built site is published to GitHub Pages, which serves a project repo
+   * from `/<repo>/` rather than from the domain root. An absolute `/assets/...`
+   * base would 404 there. A relative base works from the root, from a subpath,
+   * and from a plain file:// open, so the build is portable.
+   */
+  base: './',
   server: {
     port: 5173,
     open: false,
